@@ -15,9 +15,74 @@ beforeAll(() => {
     !fs.existsSync(path.join(FIXTURE_DIR, 'test-v1v2.apk'))
   ) {
     throw new Error(
-      'Test fixtures not found. Run `npx tsx test/generate-fixtures.ts` first.',
+      'Test fixtures not found.',
     );
   }
+});
+
+describe('APK - manifest info', () => {
+  it('extracts manifest info from APK', () => {
+    const apk = new APK(path.join(FIXTURE_DIR, 'test-v1.apk'));
+    const manifestInfo = apk.getManifestInfo();
+    expect(manifestInfo.package).toBe('apk.info.test');
+    expect(manifestInfo.versionCode).toBe(1);
+    expect(manifestInfo.versionName).toBe('1.0');
+  });
+
+  it('extracts SDK version info', () => {
+    const apk = new APK(path.join(FIXTURE_DIR, 'test-v1.apk'));
+    const manifestInfo = apk.getManifestInfo();
+    expect(manifestInfo.minSdkVersion).toBeDefined();
+    expect(manifestInfo.targetSdkVersion).toBeDefined();
+  });
+
+  it('extracts permissions array', () => {
+    const apk = new APK(path.join(FIXTURE_DIR, 'test-v1.apk'));
+    const manifestInfo = apk.getManifestInfo();
+    expect(Array.isArray(manifestInfo.permissions)).toBe(true);
+  });
+
+  it('extracts receivers array', () => {
+    const apk = new APK(path.join(FIXTURE_DIR, 'test-v1.apk'));
+    const manifestInfo = apk.getManifestInfo();
+    expect(Array.isArray(manifestInfo.receivers)).toBe(true);
+  });
+
+  it('throws error for missing AndroidManifest.xml', async () => {
+    const AdmZip = (await import('adm-zip')).default;
+    const zip = new AdmZip();
+    zip.addFile('test.txt', Buffer.from('test'));
+    const buf = zip.toBuffer();
+
+    const apk = new APK(buf);
+    expect(() => apk.getManifestInfo()).toThrow('AndroidManifest.xml not found');
+  });
+});
+
+describe('APK - resources', () => {
+  it('extracts resources from APK', () => {
+    const apk = new APK(path.join(FIXTURE_DIR, 'test-v1.apk'));
+    const resources = apk.getResources();
+    const manifestInfo = apk.getManifestInfo();
+    if (typeof manifestInfo.applicationLabel === 'number') {
+      const resolved = resources.resolve(manifestInfo.applicationLabel);
+      for (const resource of resolved) {
+        expect(resource.value).toBe('apk-info-test');
+      }
+    }
+    expect(resources).toBeDefined();
+    expect(resources.table).toBeDefined();
+  });
+
+  it('throws error for missing resources.arsc', async () => {
+    const AdmZip = (await import('adm-zip')).default;
+    const zip = new AdmZip();
+    zip.addFile('test.txt', Buffer.from('test'));
+    const buf = zip.toBuffer();
+
+    const apk = new APK(buf);
+    expect(() => apk.getResources()).toThrow('resources.arsc not found');
+  });
 });
 
 describe('APK - V1 signature', () => {

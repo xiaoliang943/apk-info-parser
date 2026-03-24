@@ -1,7 +1,5 @@
 /**
  * Represents detailed information about an APK signing certificate.
- *
- * Mirrors the Rust `CertificateInfo` struct from `crates/zip/src/signature.rs`.
  */
 export interface CertificateInfo {
   /** The serial number of the certificate. */
@@ -34,9 +32,6 @@ export interface CertificateInfo {
 
 /**
  * Describes used signature scheme in APK.
- *
- * Mirrors the Rust `Signature` enum from `crates/zip/src/signature.rs`.
- * Implemented as a discriminated union.
  */
 export type Signature =
   | { type: 'v1'; certificates: CertificateInfo[] }

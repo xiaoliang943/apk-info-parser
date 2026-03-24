@@ -1,8 +1,6 @@
 /**
  * V1 (JAR) signature parsing.
  *
- * Mirrors `ZipEntry::get_signature_v1()` from `entry.rs`.
- *
  * Looks for META-INF/*.{RSA,DSA,EC} files in the ZIP, parses PKCS#7
  * ContentInfo/SignedData, and extracts X.509 certificates.
  */
@@ -51,8 +49,6 @@ export function getSignatureV1(zip: AdmZip): Signature {
 /**
  * Parse PKCS#7 DER data and extract X.509 certificates.
  *
- * Mirrors the Rust code's use of `ContentInfo::from_der` → `SignedData::from_der`
- * → iterate `certificates`.
  */
 function parsePkcs7Certificates(derData: Buffer): CertificateInfo[] {
   const binaryStr = forge.util.binary.raw.encode(new Uint8Array(derData));

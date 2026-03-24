@@ -3,14 +3,16 @@
  *
  * Provides the public API for extracting signature and certificate
  * information from an APK file.
- *
- * Mirrors `core/src/apk.rs` → `Apk::get_signatures()`.
  */
 import { readFileSync } from 'node:fs';
 import AdmZip from 'adm-zip';
 import { getSignaturesFromBlock } from './signature-block.js';
 import { getSignatureV1 } from './signature-v1.js';
 import type { Signature } from './types.js';
+import { Manifest } from './android.js';
+import { XmlElement } from './xml.js';
+import { BinaryReader } from './binary-reader.js';
+import { Resources } from './resources.js';
 
 export class APK {
   private buffer: Buffer;
@@ -28,6 +30,38 @@ export class APK {
       this.buffer = input;
     }
     this.zip = new AdmZip(this.buffer);
+  }
+
+  getManifestInfo(): Manifest {
+    const entries = this.zip.getEntries();
+    const sigEntry = entries.find((e) => {
+      const name = e.entryName;
+      return name === "AndroidManifest.xml";
+    });
+    if (!sigEntry) {
+      throw new Error("AndroidManifest.xml not found");
+    }
+    const data = this.zip.readFile(sigEntry);
+    if (!data || data.length === 0) {
+      throw new Error("Failed to read AndroidManifest.xml");
+    }
+    return new Manifest(new XmlElement(new BinaryReader(data)));
+  }
+
+  getResources(): Resources {
+    const entries = this.zip.getEntries();
+    const sigEntry = entries.find((e) => {
+      const name = e.entryName;
+      return name === "resources.arsc";
+    });
+    if (!sigEntry) {
+      throw new Error("resources.arsc not found");
+    }
+    const data = this.zip.readFile(sigEntry);
+    if (!data || data.length === 0) {
+      throw new Error("Failed to read resources.arsc");
+    }
+    return new Resources(new BinaryReader(data));
   }
 
   /**
