@@ -22,6 +22,14 @@ export class BinaryReader {
     return this.pos;
   }
 
+  /** Read an unsigned 8-bit integer. */
+  readU8(): number {
+    this.ensureAvailable(1);
+    const val = this.buf.readUInt8(this.pos);
+    this.pos += 1;
+    return val;
+  }
+
   /** Read an unsigned 16-bit little-endian integer. */
   readU16LE(): number {
     this.ensureAvailable(2);
@@ -34,6 +42,14 @@ export class BinaryReader {
   readU32LE(): number {
     this.ensureAvailable(4);
     const val = this.buf.readUInt32LE(this.pos);
+    this.pos += 4;
+    return val;
+  }
+
+  /** Read a signed 32-bit little-endian integer. */
+  readI32LE(): number {
+    this.ensureAvailable(4);
+    const val = this.buf.readInt32LE(this.pos);
     this.pos += 4;
     return val;
   }
@@ -54,10 +70,47 @@ export class BinaryReader {
     return slice;
   }
 
+  /** Read a UTF-8 string of the given byte length. */
+  readUtf8String(size: number): string {
+    this.ensureAvailable(size);
+    const str = this.buf.toString('utf8', this.pos, this.pos + size);
+    this.pos += size;
+    return str;
+  }
+
+  /** Read a UTF-16LE string of the given byte length. */
+  readUtf16String(size: number): string {
+    this.ensureAvailable(size);
+    const str = this.buf.toString('utf16le', this.pos, this.pos + size);
+    this.pos += size;
+    return str;
+  }
+
   /** Skip `n` bytes. */
   skip(n: number): void {
     this.ensureAvailable(n);
     this.pos += n;
+  }
+
+  /** Move the cursor to an absolute position. */
+  moveAt(position: number): void {
+    if (position < 0 || position > this.buf.length) {
+      throw new Error(
+        `BinaryReader EOF: cannot move to position ${position}, buffer length is ${this.buf.length}`,
+      );
+    }
+    this.pos = position;
+  }
+
+  /**
+   * Read `n` bytes and return a new BinaryReader over them.
+   * Advances the current reader's position.
+   */
+  source(size: number): BinaryReader {
+    this.ensureAvailable(size);
+    const slice = this.buf.subarray(this.pos, this.pos + size);
+    this.pos += size;
+    return new BinaryReader(slice);
   }
 
   /**

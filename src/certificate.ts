@@ -1,7 +1,5 @@
 /**
  * Converts an X.509 certificate (node-forge or raw DER) into a CertificateInfo.
- *
- * Mirrors the Rust `impl From<Certificate> for CertificateInfo` in `entry.rs`.
  */
 import crypto from 'node:crypto';
 import forge from 'node-forge';

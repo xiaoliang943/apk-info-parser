@@ -1,5 +1,7 @@
 node_modules/
 dist/
+.vscode/
+.opencode/
 *.tgz
 AGENTS.md
 .DS_Store

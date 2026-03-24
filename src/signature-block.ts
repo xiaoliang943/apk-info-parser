@@ -1,9 +1,6 @@
 /**
  * APK Signing Block parser for V2, V3, V3.1 signatures.
  *
- * Mirrors `ZipEntry::get_signatures_other()` and `parse_apk_signatures()`
- * from `entry.rs`.
- *
  * The APK Signing Block sits between the last ZIP entry and the Central Directory.
  * Layout (reading backwards from Central Directory offset):
  *
@@ -125,8 +122,6 @@ export function getSignaturesFromBlock(apkBuf: Buffer): Signature[] {
  *
  * Each pair:
  *   [size: u64] [id: u32] [value: size-4 bytes]
- *
- * Mirrors `parse_apk_signatures()` in `entry.rs`.
  */
 function parseApkSignatures(pairsBuf: Buffer): Signature[] {
   const reader = BinaryReader.from(pairsBuf);
@@ -188,8 +183,6 @@ function parseSignatureBlock(
 
 /**
  * Parse V2 signers and extract certificates.
- *
- * Mirrors `parse_signer_v2()` in `entry.rs`.
  *
  * Format:
  *   signers = length_prefixed_u32 { signer* }
@@ -256,8 +249,6 @@ function parseOneSignerV2(reader: BinaryReader): CertificateInfo[] {
 
 /**
  * Parse V3/V3.1 signers and extract certificates.
- *
- * Mirrors `parse_signer_v3()` in `entry.rs`.
  *
  * Same as V2 but with additional min_sdk/max_sdk fields:
  *   signer = length_prefixed_u32 {
@@ -334,8 +325,6 @@ function parseOneSignerV3(reader: BinaryReader): CertificateInfo[] {
 
 /**
  * Parse a sequence of length-prefixed DER certificates.
- *
- * Mirrors `repeat(0.., Self::parse_certificate())` in `entry.rs`.
  */
 function parseCertificatesFromBlock(data: Buffer): CertificateInfo[] {
   const reader = BinaryReader.from(data);

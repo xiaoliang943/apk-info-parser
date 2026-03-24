@@ -1,7 +1,7 @@
 {
   "name": "apk-info-parser",
   "version": "1.0.2",
-  "description": "APK signature and certificate parser for Node.js",
+  "description": "APK information parser for Node.js",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

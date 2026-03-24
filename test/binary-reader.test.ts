@@ -108,4 +108,89 @@ describe('BinaryReader', () => {
     expect(data.length).toBe(0);
     expect(reader.remaining).toBe(0);
   });
+
+  it('reads u8', () => {
+    const buf = Buffer.from([0x42]);
+    const reader = BinaryReader.from(buf);
+    expect(reader.readU8()).toBe(0x42);
+    expect(reader.remaining).toBe(0);
+  });
+
+  it('throws on EOF for readU8', () => {
+    const reader = BinaryReader.from(Buffer.alloc(0));
+    expect(() => reader.readU8()).toThrow('BinaryReader EOF');
+  });
+
+  it('reads i32 little-endian', () => {
+    const buf = Buffer.alloc(4);
+    buf.writeInt32LE(-123456, 0);
+    const reader = BinaryReader.from(buf);
+    expect(reader.readI32LE()).toBe(-123456);
+    expect(reader.remaining).toBe(0);
+  });
+
+  it('throws on EOF for readI32LE', () => {
+    const buf = Buffer.from([0x01, 0x02, 0x03]);
+    const reader = BinaryReader.from(buf);
+    expect(() => reader.readI32LE()).toThrow('BinaryReader EOF');
+  });
+
+  it('reads UTF-8 string', () => {
+    const str = 'Hello';
+    const buf = Buffer.from(str, 'utf8');
+    const reader = BinaryReader.from(buf);
+    expect(reader.readUtf8String(5)).toBe('Hello');
+    expect(reader.remaining).toBe(0);
+  });
+
+  it('throws on EOF for readUtf8String', () => {
+    const buf = Buffer.from([0x48, 0x65]);
+    const reader = BinaryReader.from(buf);
+    expect(() => reader.readUtf8String(5)).toThrow('BinaryReader EOF');
+  });
+
+  it('reads UTF-16LE string', () => {
+    const str = 'Hi';
+    const buf = Buffer.from(str, 'utf16le');
+    const reader = BinaryReader.from(buf);
+    expect(reader.readUtf16String(4)).toBe('Hi');
+    expect(reader.remaining).toBe(0);
+  });
+
+  it('throws on EOF for readUtf16String', () => {
+    const buf = Buffer.from([0x48, 0x00]);
+    const reader = BinaryReader.from(buf);
+    expect(() => reader.readUtf16String(4)).toThrow('BinaryReader EOF');
+  });
+
+  it('moves to absolute position', () => {
+    const buf = Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05]);
+    const reader = BinaryReader.from(buf);
+    reader.moveAt(3);
+    expect(reader.offset).toBe(3);
+    expect(reader.readU16LE()).toBe(0x0504);
+  });
+
+  it('throws on moveAt out of bounds', () => {
+    const buf = Buffer.from([0x01, 0x02]);
+    const reader = BinaryReader.from(buf);
+    expect(() => reader.moveAt(5)).toThrow('BinaryReader EOF');
+    expect(() => reader.moveAt(-1)).toThrow('BinaryReader EOF');
+  });
+
+  it('creates sub-reader with source', () => {
+    const buf = Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05]);
+    const reader = BinaryReader.from(buf);
+    const sub = reader.source(3);
+    expect(sub.remaining).toBe(3);
+    expect(sub.readU8()).toBe(0x01);
+    expect(reader.remaining).toBe(2);
+    expect(reader.readU8()).toBe(0x04);
+  });
+
+  it('throws on EOF for source', () => {
+    const buf = Buffer.from([0x01, 0x02]);
+    const reader = BinaryReader.from(buf);
+    expect(() => reader.source(5)).toThrow('BinaryReader EOF');
+  });
 });
